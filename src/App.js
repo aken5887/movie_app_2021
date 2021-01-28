@@ -1,34 +1,72 @@
 import React from "react";
 import PropTypes from "prop-types";
+import axios from "axios";
+import Movie from "./Movie";
+import "./App.css";
 
-class App extends React.Component{
+/**
+ * state는 object이다
+ * state 변경시 render 함수를 재호출하기 위해서 setState를 사용해야함
+ * setState를 호출할때마다 react는 새로운 state와 함께 render function을 호출함
+ */
+class App extends React.Component {
   state = {
-    count : 0
-  };
-  /**
-   * state는 object이다
-   * state 변경시 render 함수를 재호출하기 위해서 setState를 사용해야함
-   * setState를 호출할때마다 react는 새로운 state와 함께 render function을 호출함
-   */
-  add = () => {
-    console.log('add');
-    // this.setState({count : this.state.count + 1})
-    this.setState(current => ({count : current.count + 1}));
+    isLoading: true,
+    movies: [],
   };
 
-  minus = () => {
-    console.log('minus');
-    this.setState({count : this.state.count - 1})
+  getMovies = async () => {
+    const {
+      data: {
+        data: { movies },
+      },
+    } = await axios.get(
+      "https://yts-proxy.now.sh/list_movies.json?sort_by=rating"
+    );
+    console.log(movies);
+    this.setState({ movies: movies, isLoading: false });
   };
 
-  render(){
+  componentDidMount() {
+    console.log("componentDidMount");
+    // setTimeout(()=>{
+    //     this.setState({isLoading : false});
+    // }, 6000);
+    // fetch
+    // axios
+    this.getMovies();
+  }
+
+  render() {
+    const { isLoading, movies } = this.state;
     return (
-      <div>
-        <h1>The number is : {this.state.count}</h1>
-        <button onClick={this.add}>plus</button>
-        <button onClick={this.minus}>minus</button>
-      </div>
-    )
+      <section className="container">
+        {isLoading ? (
+          <div className="loader">
+            <span className="loader __text">Loading...</span>
+          </div>
+        ) : (
+          <div className="movies">
+          {
+            movies.map((movie) => {
+              console.log(movie);
+              return (
+                <Movie
+                  key={movie.id}
+                  id={movie.id}
+                  year={movie.year}
+                  title={movie.title}
+                  summary={movie.summary}
+                  poster={movie.medium_cover_image}
+                  genres = {movie.genres}
+                />
+              );
+            })
+          }
+          </div>
+        )}
+      </section>
+    );
   }
 }
 
